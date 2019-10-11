@@ -122,6 +122,15 @@ void matrix_init_user(void) {
     #endif
 }
 
+// Setting ADJUST layer RGB back to default
+void update_tri_layer_RGB(uint8_t layer1, uint8_t layer2, uint8_t layer3) {
+  if (IS_LAYER_ON(layer1) && IS_LAYER_ON(layer2)) {
+    layer_on(layer3);
+  } else {
+    layer_off(layer3);
+  }
+}
+
 //SSD1306 OLED update loop, make sure to add #define SSD1306OLED in config.h
 #ifdef SSD1306OLED
 
@@ -200,11 +209,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       if (record->event.pressed)
       {
         layer_on(_LOWER);
-        update_tri_layer(_LOWER, _RAISE, _ADJUST);
+        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       }
       else {
         layer_off(_LOWER);
-        update_tri_layer(_LOWER, _RAISE, _ADJUST);
+        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       }
       return false;
       break;
@@ -212,11 +221,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       if (record->event.pressed)
       {
         layer_on(_RAISE);
-        update_tri_layer(_LOWER, _RAISE, _ADJUST);
+        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       }
       else {
         layer_off(_RAISE);
-        update_tri_layer(_LOWER, _RAISE, _ADJUST);
+        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       }
       return false;
       break;
@@ -249,4 +258,38 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       break;
   }
   return true;
+}
+
+#define L_BASE 0
+#define L_QWERTY (1U << _QWERTY)
+#define L_LOWER (1U << _LOWER)
+#define L_RAISE (1U << _RAISE)
+#define L_ADJUST 28 //(1U << _ADJUST) //this didn't work
+#define L_ESCFN (1U << _ESCFN)
+
+char layer_state_str[24];
+
+const char *read_layer_state(void) {
+  switch (layer_state) {
+    case L_BASE:
+      snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Default");
+      break;
+    case L_LOWER:
+      snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Lower");
+      break;
+    case L_RAISE:
+      snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Raise");
+      break;
+    case L_ADJUST:
+      snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Adjust");
+      break;
+    case L_ESCFN:
+      snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Fn");
+      break;
+    default:
+      snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Undef-%ld", layer_state);
+      break;
+  }
+
+  return layer_state_str;
 }
