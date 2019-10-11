@@ -272,7 +272,16 @@ char layer_state_str[24];
 const char *read_layer_state(void) {
   switch (layer_state) {
     case L_BASE:
-      snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Default");
+      //test this..
+      if (biton32(default_layer_state) == _WORKMAN) {
+        snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Workman");
+      }
+      else if (biton32(default_layer_state) == _QWERTY) {
+        snprintf(layer_state_str, sizeof(layer_state_str), "Layer: QWERTY");
+      }
+      else {
+        snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Default");
+      }
       break;
     case L_LOWER:
       snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Lower");
