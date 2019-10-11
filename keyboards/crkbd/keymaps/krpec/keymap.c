@@ -15,25 +15,23 @@ extern uint8_t is_master;
 // entirely and just use numbers.
 enum crkbd_layers {
   _WORKMAN = 0,
+  _QWERTY,
   _LOWER,
   _RAISE,
   _ADJUST,
   _ESCFN,
-  _QWERTY
 };
 
 enum custom_keycodes {
   WORKMAN = SAFE_RANGE,
   QWERTY,
+  LOWER,
+  RAISE,
   ADJUST,
+  ESCFN,
   BACKLIT,
   RGBRST,
-  ESCFN
 };
-
-#define LOWER MO(_LOWER)
-#define RAISE MO(_RAISE)
-#define ESCFN MO(_ESCFN)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_WORKMAN] = LAYOUT( \
@@ -44,7 +42,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
     KC_LSFT,  KC_Z,  KC_X,  KC_M,  KC_C,  KC_V,                   KC_K,  KC_L,KC_COMM,KC_DOT,KC_SLSH,KC_ENT,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                KC_LGUI, LOWER,    ESCFN,   KC_SPC, RAISE,KC_RALT \
+                                KC_LGUI, LOWER, ESCFN,   KC_SPC, RAISE,KC_RALT \
                               //`--------------------'  `--------------------'
   ),
 
@@ -56,9 +54,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
     KC_LSFT,  KC_Z,  KC_X,  KC_C,  KC_V,  KC_B,                   KC_N,  KC_M,KC_COMM,KC_DOT,KC_SLSH,KC_ENT,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                KC_LGUI, LOWER, ESCFN,   KC_SPC, RAISE,KC_RALT \
+                                KC_LGUI, LOWER,ESCFN,   KC_SPC, RAISE,KC_RALT \
                               //`--------------------'  `--------------------'
   ),
+
 
   [_LOWER] = LAYOUT( \
   //,-----------------------------------------.                ,-----------------------------------------.
@@ -68,7 +67,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
     KC_LSFT, KC_F7, KC_F8, KC_F9,KC_F10,KC_F11,                KC_F12, KC_TILD, KC_NO, KC_HOME, KC_END, KC_ENT,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                KC_LGUI, LOWER,    ESCFN,   KC_SPC, RAISE,KC_RALT \
+                                KC_LGUI, LOWER,ESCFN,   KC_SPC, RAISE,KC_RALT \
                               //`--------------------'  `--------------------'
   ),
 
@@ -80,7 +79,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
     KC_LSFT,KC_MUTE,KC_VOLD,KC_VOLU,KC_MPLY,KC_PAUS,            KC_NO,KC_GRV,KC_NO,KC_PGUP,KC_PGDN,KC_ENT,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                KC_LGUI, LOWER,    ESCFN,   KC_SPC, RAISE,KC_RALT \
+                                KC_LGUI, LOWER,ESCFN,   KC_SPC, RAISE,KC_RALT \
                               //`--------------------'  `--------------------'
   ),
 
@@ -92,7 +91,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
     KC_LSFT,KC_NO,KC_NO, KC_NO, KC_NO, KC_NO,                   KC_NO,KC_MUTE,KC_VOLD,KC_VOLU,KC_MPLY,KC_ENT,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                KC_LGUI, LOWER,    ESCFN,   KC_SPC, RAISE,KC_RALT \
+                                KC_LGUI, LOWER,ESCFN,   KC_SPC, RAISE,KC_RALT \
                               //`--------------------'  `--------------------'
   ),
 
@@ -111,11 +110,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 int RGB_current_mode;
 
-uint32_t layer_state_set_user(uint32_t state) {
-  return update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
-}
-
 void matrix_init_user(void) {
+  eeconfig_init();
+
     #ifdef RGBLIGHT_ENABLE
       RGB_current_mode = rgblight_config.mode;
     #endif
@@ -199,6 +196,39 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       }
       return false;
       break;
+    case LOWER:
+      if (record->event.pressed)
+      {
+        layer_on(_LOWER);
+        update_tri_layer(_LOWER, _RAISE, _ADJUST);
+      }
+      else {
+        layer_off(_LOWER);
+        update_tri_layer(_LOWER, _RAISE, _ADJUST);
+      }
+      return false;
+      break;
+    case RAISE:
+      if (record->event.pressed)
+      {
+        layer_on(_RAISE);
+        update_tri_layer(_LOWER, _RAISE, _ADJUST);
+      }
+      else {
+        layer_off(_RAISE);
+        update_tri_layer(_LOWER, _RAISE, _ADJUST);
+      }
+      return false;
+      break;
+    case ESCFN:
+      if (record->event.pressed) {
+        layer_on(_ESCFN);
+      }
+      else {
+        layer_off(_ESCFN);
+      }
+      return false;
+      break;
     case RGB_MOD:
       #ifdef RGBLIGHT_ENABLE
         if (record->event.pressed) {
@@ -219,43 +249,4 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       break;
   }
   return true;
-}
-
-#define L_WORKMAN (1 << _WORKMAN)
-#define L_LOWER (1 << _LOWER)
-#define L_RAISE (1 << _RAISE)
-#define L_ADJUST (1 << _ADJUST)
-#define L_ADJUST_TRI (L_ADJUST|L_LOWER|L_RAISE)
-#define L_ESCFN (1 << _ESCFN)
-#define L_QWERTY (1 << _QWERTY)
-
-char layer_state_str[24];
-
-const char *read_layer_state(void) {
-  switch (layer_state)
-  {
-  case L_WORKMAN:
-    snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Workman");
-    break;
-  case L_RAISE:
-    snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Raise");
-    break;
-  case L_LOWER:
-    snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Lower");
-    break;
-  case L_ADJUST:
-  case L_ADJUST_TRI:
-    snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Adjust");
-    break;
-  case L_ESCFN:
-    snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Fn");
-    break;
-  case L_QWERTY:
-    snprintf(layer_state_str, sizeof(layer_state_str), "Layer: QWERTY");
-    break;
-  default:
-    snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Undef-%ld", layer_state);
-  }
-
-  return layer_state_str;
 }
