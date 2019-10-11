@@ -14,7 +14,7 @@ extern uint8_t is_master;
 // Layer names don't all need to be of the same length, obviously, and you can also skip them
 // entirely and just use numbers.
 enum crkbd_layers {
-  _WORKMAN,
+  _WORKMAN = 0,
   _LOWER,
   _RAISE,
   _ADJUST,
@@ -221,7 +221,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   return true;
 }
 
-// in the future, should use (1U<<_LAYER_NAME) instead, but needs to be moved to keymap,c
 #define L_WORKMAN (1 << _WORKMAN)
 #define L_LOWER (1 << _LOWER)
 #define L_RAISE (1 << _RAISE)
