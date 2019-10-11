@@ -18,18 +18,22 @@ enum crkbd_layers {
   _LOWER,
   _RAISE,
   _ADJUST,
-  _ESCFN
+  _ESCFN,
+  _QWERTY
 };
 
 enum custom_keycodes {
   WORKMAN = SAFE_RANGE,
-  LOWER,
-  RAISE,
+  QWERTY,
   ADJUST,
   BACKLIT,
   RGBRST,
   ESCFN
 };
+
+#define LOWER MO(_LOWER)
+#define RAISE MO(_RAISE)
+#define ESCFN MO(_ESCFN)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_WORKMAN] = LAYOUT( \
@@ -41,6 +45,18 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_LSFT,  KC_Z,  KC_X,  KC_M,  KC_C,  KC_V,                   KC_K,  KC_L,KC_COMM,KC_DOT,KC_SLSH,KC_ENT,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
                                 KC_LGUI, LOWER,    ESCFN,   KC_SPC, RAISE,KC_RALT \
+                              //`--------------------'  `--------------------'
+  ),
+
+  [_QWERTY] = LAYOUT( \
+  //,-----------------------------------------.                ,-----------------------------------------.
+     KC_TAB,  KC_Q,  KC_W,  KC_E,  KC_R,  KC_T,                   KC_Y,  KC_U,  KC_I,  KC_O,  KC_P,KC_BSPC,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_LCTL,  KC_A,  KC_S,  KC_D,  KC_F,  KC_G,                   KC_H,  KC_J,  KC_K,  KC_L,KC_SCLN,KC_QUOT,\
+  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
+    KC_LSFT,  KC_Z,  KC_X,  KC_C,  KC_V,  KC_B,                   KC_N,  KC_M,KC_COMM,KC_DOT,KC_SLSH,KC_ENT,\
+  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
+                                KC_LGUI, LOWER, ESCFN,   KC_SPC, RAISE,KC_RALT \
                               //`--------------------'  `--------------------'
   ),
 
@@ -84,7 +100,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //,-----------------------------------------.                ,-----------------------------------------.
       RESET,RGBRST, KC_NO, KC_NO, KC_NO, KC_NO,                  KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-    RGB_TOG,RGB_HUI,RGB_SAI,RGB_VAI,KC_NO,KC_NO,                 KC_NO, WORKMAN, KC_NO, KC_NO, KC_NO, KC_NO,\
+    RGB_TOG,RGB_HUI,RGB_SAI,RGB_VAI,KC_NO,KC_NO,                 KC_NO, WORKMAN, QWERTY, KC_NO, KC_NO, KC_NO,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
     RGB_MOD,RGB_HUD,RGB_SAD,RGB_VAD,KC_NO,KC_NO,                 KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
@@ -100,13 +116,17 @@ void persistent_default_layer_set(uint16_t default_layer) {
   default_layer_set(default_layer);
 }
 
-// Setting ADJUST layer RGB back to default
-void update_tri_layer_RGB(uint8_t layer1, uint8_t layer2, uint8_t layer3) {
-  if (IS_LAYER_ON(layer1) && IS_LAYER_ON(layer2)) {
-    layer_on(layer3);
-  } else {
-    layer_off(layer3);
-  }
+// // Setting ADJUST layer RGB back to default
+// void update_tri_layer_RGB(uint8_t layer1, uint8_t layer2, uint8_t layer3) {
+//   if (IS_LAYER_ON(layer1) && IS_LAYER_ON(layer2)) {
+//     layer_on(layer3);
+//   } else {
+//     layer_off(layer3);
+//   }
+// }
+
+uint32_t layer_state_set_user(uint32_t state) {
+  return update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
 }
 
 void matrix_init_user(void) {
@@ -133,6 +153,12 @@ const char *read_keylogs(void);
 // const char *read_host_led_state(void);
 // void set_timelog(void);
 // const char *read_timelog(void);
+
+void keyboard_pre_init_user(void)
+{
+  eeconfig_init_kb();
+  eeconfig_init_user();
+}
 
 void matrix_scan_user(void) {
    iota_gfx_task();
@@ -169,7 +195,6 @@ void iota_gfx_task_user(void) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
-    eeprom_update_dword(EECONFIG_DEFAULT_LAYER, 1UL<<_WORKMAN);
 #ifdef SSD1306OLED
     set_keylog(keycode, record);
 #endif
@@ -179,44 +204,51 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case WORKMAN:
       if (record->event.pressed) {
-        persistent_default_layer_set(1UL<<_WORKMAN);
+        set_single_persistent_default_layer(_WORKMAN);
       }
       return false;
-    case LOWER:
+      break;
+    case QWERTY:
       if (record->event.pressed) {
-        layer_on(_LOWER);
-        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-      } else {
-        layer_off(_LOWER);
-        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
+        set_single_persistent_default_layer(_QWERTY);
       }
       return false;
-    case RAISE:
-      if (record->event.pressed) {
-        layer_on(_RAISE);
-        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-      } else {
-        layer_off(_RAISE);
-        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-      }
-      return false;
-    case ESCFN:
-      if (record->event.pressed)
-      {
-        layer_on(_ESCFN);
-      }
-      else
-      {
-        layer_off(_ESCFN);
-      }
-      return false;
-    case ADJUST:
-        if (record->event.pressed) {
-          layer_on(_ADJUST);
-        } else {
-          layer_off(_ADJUST);
-        }
-        return false;
+      break;
+    // case LOWER:
+    //   if (record->event.pressed) {
+    //     layer_on(_LOWER);
+    //     update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
+    //   } else {
+    //     layer_off(_LOWER);
+    //     update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
+    //   }
+    //   return false;
+    // case RAISE:
+    //   if (record->event.pressed) {
+    //     layer_on(_RAISE);
+    //     update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
+    //   } else {
+    //     layer_off(_RAISE);
+    //     update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
+    //   }
+    //   return false;
+    // case ESCFN:
+    //   if (record->event.pressed)
+    //   {
+    //     layer_on(_ESCFN);
+    //   }
+    //   else
+    //   {
+    //     layer_off(_ESCFN);
+    //   }
+    //   return false;
+    // case ADJUST:
+    //     if (record->event.pressed) {
+    //       layer_on(_ADJUST);
+    //     } else {
+    //       layer_off(_ADJUST);
+    //     }
+    //     return false;
     case RGB_MOD:
       #ifdef RGBLIGHT_ENABLE
         if (record->event.pressed) {
