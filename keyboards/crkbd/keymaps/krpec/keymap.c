@@ -146,11 +146,11 @@ void update_tri_layer_RGB(uint8_t layer1, uint8_t layer2, uint8_t layer3) {
   // void set_timelog(void);
   // const char *read_timelog(void);
 
-  void keyboard_pre_init_user(void)
-  {
-    eeconfig_init_kb();
-    eeconfig_init_user();
-  }
+  // void keyboard_pre_init_user(void)
+  // {
+  //   eeconfig_init_kb();
+  //   eeconfig_init_user();
+  // }
 
   void matrix_scan_user(void) {
      iota_gfx_task();
