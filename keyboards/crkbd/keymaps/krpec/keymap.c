@@ -111,15 +111,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 int RGB_current_mode;
 
 void matrix_init_user(void) {
-  eeconfig_init();
-
-    #ifdef RGBLIGHT_ENABLE
-      RGB_current_mode = rgblight_config.mode;
-    #endif
-    //SSD1306 OLED init, make sure to add #define SSD1306OLED in config.h
-    #ifdef SSD1306OLED
-        iota_gfx_init(!has_usb());   // turns on the display
-    #endif
+  #ifdef RGBLIGHT_ENABLE
+    RGB_current_mode = rgblight_config.mode;
+  #endif
+  //SSD1306 OLED init, make sure to add #define SSD1306OLED in config.h
+  #ifdef SSD1306OLED
+      iota_gfx_init(!has_usb());   // turns on the display
+  #endif
 }
 
 // Setting ADJUST layer RGB back to default
